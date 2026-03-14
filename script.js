@@ -1,5 +1,5 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 const viewer = document.getElementById("viewer");
 
@@ -40,6 +40,9 @@ const valueLabels = {
   ridgeStrength: document.getElementById("ridgeStrengthValue")
 };
 
+// -------------------------
+// Three.js 初期化
+// -------------------------
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x101010);
 
@@ -60,12 +63,16 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, 2, 0);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+const ambientLight = new THREE.AmbientLight(0xffffff, 1.3);
 scene.add(ambientLight);
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0);
 directionalLight.position.set(5, 8, 5);
 scene.add(directionalLight);
+
+const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1.0);
+directionalLight2.position.set(-4, 3, -2);
+scene.add(directionalLight2);
 
 const grid = new THREE.GridHelper(20, 20, 0x666666, 0x333333);
 scene.add(grid);
@@ -75,15 +82,33 @@ scene.add(axes);
 
 let hornMesh = null;
 
+// -------------------------
+// 角のカーブ生成
+// -------------------------
 function createHornCurve(p) {
   const p0 = new THREE.Vector3(0, 0, 0);
-  const p1 = new THREE.Vector3(p.curveX * 0.25, p.length * 0.3, p.curveZ * 0.15);
-  const p2 = new THREE.Vector3(p.curveX * 0.85, p.length * 0.72, p.curveZ * 0.45);
-  const p3 = new THREE.Vector3(p.curveX, p.length, p.curveZ);
+  const p1 = new THREE.Vector3(
+    p.curveX * 0.25,
+    p.length * 0.3,
+    p.curveZ * 0.15
+  );
+  const p2 = new THREE.Vector3(
+    p.curveX * 0.85,
+    p.length * 0.72,
+    p.curveZ * 0.45
+  );
+  const p3 = new THREE.Vector3(
+    p.curveX,
+    p.length,
+    p.curveZ
+  );
 
   return new THREE.CatmullRomCurve3([p0, p1, p2, p3]);
 }
 
+// -------------------------
+// 角ジオメトリ生成
+// -------------------------
 function generateHornGeometry(p) {
   const radialSegments = 32;
   const heightSegments = 100;
@@ -105,9 +130,13 @@ function generateHornGeometry(p) {
 
     let radius = THREE.MathUtils.lerp(p.baseRadius, p.tipRadius, t);
 
-    const ridgeFactor =
-      1 + Math.sin(t * Math.PI * p.ridges * 2) * p.ridgeStrength;
-    radius *= ridgeFactor;
+    if (p.ridges > 0) {
+      const ridgeFactor =
+        1 + Math.sin(t * Math.PI * p.ridges * 2) * p.ridgeStrength;
+      radius *= ridgeFactor;
+    }
+
+    radius = Math.max(radius, 0.001);
 
     const twistAngle = p.twist * Math.PI * 2 * t;
     const cosT = Math.cos(twistAngle);
@@ -131,7 +160,8 @@ function generateHornGeometry(p) {
       positions.push(vertex.x, vertex.y, vertex.z);
 
       const n = new THREE.Vector3()
-        .addScaledVector(normal, localX)
+        .copy(normal)
+        .multiplyScalar(localX)
         .addScaledVector(binormal, localY)
         .normalize();
 
@@ -152,6 +182,7 @@ function generateHornGeometry(p) {
     }
   }
 
+  // 根元を閉じる
   const bottomCenterIndex = positions.length / 3;
   const bottomCenter = curve.getPointAt(0);
   positions.push(bottomCenter.x, bottomCenter.y, bottomCenter.z);
@@ -164,6 +195,7 @@ function generateHornGeometry(p) {
     indices.push(bottomCenterIndex, b, a);
   }
 
+  // 先端を閉じる
   const topCenterIndex = positions.length / 3;
   const topCenter = curve.getPointAt(1);
   positions.push(topCenter.x, topCenter.y, topCenter.z);
@@ -187,14 +219,23 @@ function generateHornGeometry(p) {
     "normal",
     new THREE.Float32BufferAttribute(normals, 3)
   );
-  geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setAttribute(
+    "uv",
+    new THREE.Float32BufferAttribute(uvs, 2)
+  );
+
   geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
 
   return geometry;
 }
 
+// -------------------------
+// メッシュ作成
+// -------------------------
 function createHornMesh(p) {
   const geometry = generateHornGeometry(p);
+
   const material = new THREE.MeshStandardMaterial({
     color: p.color,
     roughness: 0.75,
@@ -205,6 +246,9 @@ function createHornMesh(p) {
   return mesh;
 }
 
+// -------------------------
+// 再生成
+// -------------------------
 function updateHorn() {
   if (hornMesh) {
     scene.remove(hornMesh);
@@ -216,6 +260,9 @@ function updateHorn() {
   scene.add(hornMesh);
 }
 
+// -------------------------
+// UI同期
+// -------------------------
 function syncLabels() {
   valueLabels.length.textContent = Number(params.length).toFixed(1);
   valueLabels.baseRadius.textContent = Number(params.baseRadius).toFixed(2);
@@ -254,7 +301,7 @@ function randomizeParams() {
   params.curveX = THREE.MathUtils.randFloat(-2.5, 2.5);
   params.curveZ = THREE.MathUtils.randFloat(-2.0, 2.0);
   params.twist = THREE.MathUtils.randFloat(-3.0, 3.0);
-  params.ridges = Math.floor(THREE.MathUtils.randInt(0, 16));
+  params.ridges = THREE.MathUtils.randInt(0, 16);
   params.ridgeStrength = THREE.MathUtils.randFloat(0.0, 0.16);
 
   const colors = [
@@ -275,6 +322,9 @@ function randomizeParams() {
   updateHorn();
 }
 
+// -------------------------
+// イベント
+// -------------------------
 document.getElementById("resetBtn").addEventListener("click", resetParams);
 document.getElementById("randomBtn").addEventListener("click", randomizeParams);
 
@@ -282,16 +332,27 @@ bindInputs();
 syncLabels();
 updateHorn();
 
+// -------------------------
+// リサイズ対応
+// -------------------------
 window.addEventListener("resize", () => {
-  camera.aspect = viewer.clientWidth / viewer.clientHeight;
+  const width = viewer.clientWidth;
+  const height = viewer.clientHeight;
+
+  camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+
+  renderer.setSize(width, height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
 
+// -------------------------
+// 描画ループ
+// -------------------------
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
   renderer.render(scene, camera);
 }
+
 animate();
