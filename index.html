@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>角ジェネレーター</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <aside class="panel">
+      <h1>角ジェネレーター</h1>
+
+      <div class="control">
+        <label for="length">長さ <span id="lengthValue">4.0</span></label>
+        <input type="range" id="length" min="1" max="10" step="0.1" value="4.0" />
+      </div>
+
+      <div class="control">
+        <label for="baseRadius">根元の太さ <span id="baseRadiusValue">0.6</span></label>
+        <input type="range" id="baseRadius" min="0.1" max="2" step="0.01" value="0.6" />
+      </div>
+
+      <div class="control">
+        <label for="tipRadius">先端の太さ <span id="tipRadiusValue">0.08</span></label>
+        <input type="range" id="tipRadius" min="0.01" max="0.5" step="0.01" value="0.08" />
+      </div>
+
+      <div class="control">
+        <label for="curveX">横の曲がり <span id="curveXValue">1.2</span></label>
+        <input type="range" id="curveX" min="-3" max="3" step="0.01" value="1.2" />
+      </div>
+
+      <div class="control">
+        <label for="curveZ">前後の曲がり <span id="curveZValue">0.6</span></label>
+        <input type="range" id="curveZ" min="-3" max="3" step="0.01" value="0.6" />
+      </div>
+
+      <div class="control">
+        <label for="twist">ねじれ <span id="twistValue">1.2</span></label>
+        <input type="range" id="twist" min="-5" max="5" step="0.01" value="1.2" />
+      </div>
+
+      <div class="control">
+        <label for="ridges">節の数 <span id="ridgesValue">9</span></label>
+        <input type="range" id="ridges" min="0" max="20" step="1" value="9" />
+      </div>
+
+      <div class="control">
+        <label for="ridgeStrength">節の強さ <span id="ridgeStrengthValue">0.08</span></label>
+        <input type="range" id="ridgeStrength" min="0" max="0.3" step="0.005" value="0.08" />
+      </div>
+
+      <div class="control">
+        <label for="color">色</label>
+        <input type="color" id="color" value="#d8d1c5" />
+      </div>
+
+      <div class="buttons">
+        <button id="randomBtn">ランダム生成</button>
+        <button id="resetBtn">リセット</button>
+      </div>
+    </aside>
+
+    <main id="viewer"></main>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
