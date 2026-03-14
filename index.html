@@ -10,86 +10,58 @@
   <div id="app">
     <aside class="panel">
       <div class="panel-header">
-        <h1>Horn Generator</h1>
-        <p>オリジナルの角をデザイン</p>
-      </div>
-
-      <div class="section">
-        <label>プリセット</label>
-        <select id="preset">
-          <option value="rhino">サイ</option>
-          <option value="devil">悪魔</option>
-          <option value="spiral">らせん</option>
-          <option value="antler">鹿風</option>
-        </select>
-      </div>
-
-      <div class="section grid2">
-        <div class="control">
-          <label>長さ <span id="lengthValue"></span></label>
-          <input type="range" id="length" min="1" max="10" step="0.1" />
-        </div>
-
-        <div class="control">
-          <label>太さ <span id="baseRadiusValue"></span></label>
-          <input type="range" id="baseRadius" min="0.08" max="1.5" step="0.01" />
-        </div>
-
-        <div class="control">
-          <label>先端 <span id="tipRadiusValue"></span></label>
-          <input type="range" id="tipRadius" min="0.01" max="0.4" step="0.01" />
-        </div>
-
-        <div class="control">
-          <label>曲がり <span id="curveValue"></span></label>
-          <input type="range" id="curve" min="-3" max="3" step="0.01" />
-        </div>
-
-        <div class="control">
-          <label>前後 <span id="forwardValue"></span></label>
-          <input type="range" id="forward" min="-3" max="3" step="0.01" />
-        </div>
-
-        <div class="control">
-          <label>らせん <span id="twistValue"></span></label>
-          <input type="range" id="twist" min="-5" max="5" step="0.01" />
-        </div>
-
-        <div class="control">
-          <label>節 <span id="ridgesValue"></span></label>
-          <input type="range" id="ridges" min="0" max="20" step="1" />
-        </div>
-
-        <div class="control">
-          <label>節の強さ <span id="ridgeStrengthValue"></span></label>
-          <input type="range" id="ridgeStrength" min="0" max="0.3" step="0.005" />
-        </div>
-
-        <div class="control">
-          <label>分岐数 <span id="branchCountValue"></span></label>
-          <input type="range" id="branchCount" min="0" max="4" step="1" />
-        </div>
-
-        <div class="control">
-          <label>分岐角度 <span id="branchAngleValue"></span></label>
-          <input type="range" id="branchAngle" min="0" max="1.4" step="0.01" />
-        </div>
-
-        <div class="control">
-          <label>分岐位置 <span id="branchStartValue"></span></label>
-          <input type="range" id="branchStart" min="0.2" max="0.9" step="0.01" />
-        </div>
-
-        <div class="control">
-          <label>色</label>
-          <input type="color" id="color" />
+        <div>
+          <h1>Horn Generator</h1>
+          <p>オリジナルの角をデザイン</p>
         </div>
       </div>
 
-      <div class="buttons">
-        <button id="applyPresetBtn" class="ghost">プリセット反映</button>
+      <div class="card">
+        <div class="field">
+          <label for="preset">タイプ</label>
+          <select id="preset">
+            <option value="rhino">サイ</option>
+            <option value="devil">悪魔</option>
+            <option value="spiral">らせん</option>
+            <option value="antler">鹿風</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="size">大きさ <span id="sizeValue">5.0</span></label>
+          <input type="range" id="size" min="1" max="10" step="0.1" value="5.0" />
+        </div>
+
+        <div class="field">
+          <label for="curve">曲がり <span id="curveValue">1.2</span></label>
+          <input type="range" id="curve" min="-3" max="3" step="0.01" value="1.2" />
+        </div>
+
+        <div class="field">
+          <label for="twist">らせん <span id="twistValue">0.4</span></label>
+          <input type="range" id="twist" min="-4" max="4" step="0.01" value="0.4" />
+        </div>
+
+        <div class="field">
+          <label for="texture">節・凹凸 <span id="textureValue">0.4</span></label>
+          <input type="range" id="texture" min="0" max="1" step="0.01" value="0.4" />
+        </div>
+
+        <div class="field">
+          <label for="branches">分岐 <span id="branchesValue">0</span></label>
+          <input type="range" id="branches" min="0" max="4" step="1" value="0" />
+        </div>
+
+        <div class="field">
+          <label for="color">色</label>
+          <input type="color" id="color" value="#cdb79e" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="presetBtn" class="secondary">プリセット反映</button>
         <button id="randomBtn">ランダム</button>
-        <button id="resetBtn" class="ghost">リセット</button>
+        <button id="resetBtn" class="secondary">リセット</button>
       </div>
     </aside>
 
