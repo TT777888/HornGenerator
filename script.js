@@ -5,117 +5,80 @@ const viewer = document.getElementById("viewer");
 
 const PRESETS = {
   rhino: {
-    length: 4.5,
-    baseRadius: 0.55,
-    tipRadius: 0.03,
-    curve: 0.2,
-    forward: 0.9,
+    size: 5.2,
+    curve: 0.25,
     twist: 0.0,
-    ridges: 10,
-    ridgeStrength: 0.08,
-    branchCount: 0,
-    branchAngle: 0.35,
-    branchStart: 0.55,
-    color: "#bfa58a"
+    texture: 0.55,
+    branches: 0,
+    color: "#bfa184"
   },
   devil: {
-    length: 4.2,
-    baseRadius: 0.35,
-    tipRadius: 0.04,
-    curve: 1.8,
-    forward: 0.4,
-    twist: 0.5,
-    ridges: 6,
-    ridgeStrength: 0.04,
-    branchCount: 0,
-    branchAngle: 0.4,
-    branchStart: 0.55,
-    color: "#e9d8c7"
+    size: 4.6,
+    curve: 1.9,
+    twist: 0.35,
+    texture: 0.25,
+    branches: 0,
+    color: "#eadbc9"
   },
   spiral: {
-    length: 5.5,
-    baseRadius: 0.42,
-    tipRadius: 0.05,
+    size: 5.8,
     curve: 0.8,
-    forward: 0.2,
-    twist: 2.8,
-    ridges: 14,
-    ridgeStrength: 0.05,
-    branchCount: 0,
-    branchAngle: 0.55,
-    branchStart: 0.5,
-    color: "#d4cab8"
+    twist: 2.4,
+    texture: 0.4,
+    branches: 0,
+    color: "#d8cfbf"
   },
   antler: {
-    length: 5.8,
-    baseRadius: 0.22,
-    tipRadius: 0.03,
-    curve: 1.2,
-    forward: 0.6,
-    twist: 0.15,
-    ridges: 3,
-    ridgeStrength: 0.02,
-    branchCount: 3,
-    branchAngle: 0.7,
-    branchStart: 0.42,
-    color: "#8f6b52"
+    size: 6.4,
+    curve: 1.35,
+    twist: 0.05,
+    texture: 0.15,
+    branches: 3,
+    color: "#8c6b55"
   }
 };
 
 const defaultParams = { ...PRESETS.rhino };
 const params = { ...defaultParams };
 
-const inputIds = [
-  "preset",
-  "length",
-  "baseRadius",
-  "tipRadius",
-  "curve",
-  "forward",
-  "twist",
-  "ridges",
-  "ridgeStrength",
-  "branchCount",
-  "branchAngle",
-  "branchStart",
-  "color"
-];
-
-const inputs = Object.fromEntries(
-  inputIds.map((id) => [id, document.getElementById(id)])
-);
-
-const valueLabels = {
-  length: document.getElementById("lengthValue"),
-  baseRadius: document.getElementById("baseRadiusValue"),
-  tipRadius: document.getElementById("tipRadiusValue"),
-  curve: document.getElementById("curveValue"),
-  forward: document.getElementById("forwardValue"),
-  twist: document.getElementById("twistValue"),
-  ridges: document.getElementById("ridgesValue"),
-  ridgeStrength: document.getElementById("ridgeStrengthValue"),
-  branchCount: document.getElementById("branchCountValue"),
-  branchAngle: document.getElementById("branchAngleValue"),
-  branchStart: document.getElementById("branchStartValue")
+const inputs = {
+  preset: document.getElementById("preset"),
+  size: document.getElementById("size"),
+  curve: document.getElementById("curve"),
+  twist: document.getElementById("twist"),
+  texture: document.getElementById("texture"),
+  branches: document.getElementById("branches"),
+  color: document.getElementById("color")
 };
 
-// --------------------
-// scene
-// --------------------
+const labels = {
+  size: document.getElementById("sizeValue"),
+  curve: document.getElementById("curveValue"),
+  twist: document.getElementById("twistValue"),
+  texture: document.getElementById("textureValue"),
+  branches: document.getElementById("branchesValue")
+};
+
+// -----------------------------
+// Scene
+// -----------------------------
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x0e1014, 12, 24);
+scene.fog = new THREE.Fog(0x0b0d12, 10, 26);
 
 const camera = new THREE.PerspectiveCamera(
   40,
-  viewer.clientWidth / viewer.clientHeight,
+  Math.max(1, viewer.clientWidth) / Math.max(1, viewer.clientHeight),
   0.1,
   100
 );
-camera.position.set(5.5, 3.2, 7.5);
+camera.position.set(5.8, 3.8, 8.2);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  alpha: true
+});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(Math.max(1, viewer.clientWidth), Math.max(1, viewer.clientHeight));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -125,154 +88,196 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.enablePan = false;
 controls.minDistance = 3;
-controls.maxDistance = 14;
-controls.target.set(0, 2.1, 0);
+controls.maxDistance = 16;
+controls.target.set(0, 2.3, 0);
 controls.update();
 
-scene.add(new THREE.AmbientLight(0xffffff, 1.3));
+const ambient = new THREE.AmbientLight(0xffffff, 1.35);
+scene.add(ambient);
 
-const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
 keyLight.position.set(5, 8, 6);
 keyLight.castShadow = true;
 keyLight.shadow.mapSize.set(1024, 1024);
 scene.add(keyLight);
 
-const fillLight = new THREE.DirectionalLight(0xbecfff, 0.8);
-fillLight.position.set(-6, 5, -4);
+const fillLight = new THREE.DirectionalLight(0xc9d8ff, 0.8);
+fillLight.position.set(-6, 4, -4);
 scene.add(fillLight);
 
-const rimLight = new THREE.DirectionalLight(0xffe2c2, 0.7);
+const rimLight = new THREE.DirectionalLight(0xffe4cf, 0.55);
 rimLight.position.set(0, 6, -8);
 scene.add(rimLight);
 
-// 背景の大きい球
-const bgGeo = new THREE.SphereGeometry(40, 32, 32);
-const bgMat = new THREE.MeshBasicMaterial({
-  color: 0x141923,
-  side: THREE.BackSide
-});
-const bgSphere = new THREE.Mesh(bgGeo, bgMat);
-scene.add(bgSphere);
-
-// 床影だけ見せる透明床
-const shadowPlane = new THREE.Mesh(
-  new THREE.PlaneGeometry(40, 40),
-  new THREE.ShadowMaterial({ opacity: 0.16 })
-);
-shadowPlane.rotation.x = -Math.PI / 2;
-shadowPlane.position.y = -0.01;
-shadowPlane.receiveShadow = true;
-scene.add(shadowPlane);
-
-// 柔らかい台
-const pedestal = new THREE.Mesh(
-  new THREE.CylinderGeometry(1.35, 1.5, 0.22, 48),
-  new THREE.MeshStandardMaterial({
-    color: 0x1b2130,
-    roughness: 0.9,
-    metalness: 0.05
+// 背景
+const bgSphere = new THREE.Mesh(
+  new THREE.SphereGeometry(40, 32, 32),
+  new THREE.MeshBasicMaterial({
+    color: 0x131927,
+    side: THREE.BackSide
   })
 );
-pedestal.position.y = 0.1;
+scene.add(bgSphere);
+
+// 影を受ける床
+const floor = new THREE.Mesh(
+  new THREE.CircleGeometry(12, 64),
+  new THREE.ShadowMaterial({ opacity: 0.18 })
+);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -0.001;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// 台座
+const pedestal = new THREE.Mesh(
+  new THREE.CylinderGeometry(1.45, 1.55, 0.28, 64),
+  new THREE.MeshStandardMaterial({
+    color: 0x171b23,
+    roughness: 0.92,
+    metalness: 0.03
+  })
+);
+pedestal.position.y = 0.14;
 pedestal.receiveShadow = true;
-pedestal.castShadow = false;
 scene.add(pedestal);
 
 let hornGroup = new THREE.Group();
 scene.add(hornGroup);
 
-// --------------------
-// utility
-// --------------------
-function lerp(a, b, t) {
-  return a + (b - a) * t;
-}
-
+// -----------------------------
+// Helpers
+// -----------------------------
 function updateLabels() {
-  valueLabels.length.textContent = Number(params.length).toFixed(1);
-  valueLabels.baseRadius.textContent = Number(params.baseRadius).toFixed(2);
-  valueLabels.tipRadius.textContent = Number(params.tipRadius).toFixed(2);
-  valueLabels.curve.textContent = Number(params.curve).toFixed(2);
-  valueLabels.forward.textContent = Number(params.forward).toFixed(2);
-  valueLabels.twist.textContent = Number(params.twist).toFixed(2);
-  valueLabels.ridges.textContent = params.ridges;
-  valueLabels.ridgeStrength.textContent = Number(params.ridgeStrength).toFixed(3);
-  valueLabels.branchCount.textContent = params.branchCount;
-  valueLabels.branchAngle.textContent = Number(params.branchAngle).toFixed(2);
-  valueLabels.branchStart.textContent = Number(params.branchStart).toFixed(2);
+  labels.size.textContent = Number(params.size).toFixed(1);
+  labels.curve.textContent = Number(params.curve).toFixed(2);
+  labels.twist.textContent = Number(params.twist).toFixed(2);
+  labels.texture.textContent = Number(params.texture).toFixed(2);
+  labels.branches.textContent = params.branches;
 }
 
-function syncInputsFromParams() {
-  Object.keys(params).forEach((key) => {
+function syncInputs() {
+  Object.keys(inputs).forEach((key) => {
     if (inputs[key]) inputs[key].value = params[key];
   });
   updateLabels();
 }
 
 function clearGroup(group) {
-  while (group.children.length) {
-    const child = group.children.pop();
-    if (child.geometry) child.geometry.dispose();
-    if (child.material) {
-      if (Array.isArray(child.material)) child.material.forEach((m) => m.dispose());
-      else child.material.dispose();
-    }
+  while (group.children.length > 0) {
+    const child = group.children[0];
+    group.remove(child);
+
+    child.traverse?.((obj) => {
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) {
+        if (Array.isArray(obj.material)) {
+          obj.material.forEach((m) => m.dispose());
+        } else {
+          obj.material.dispose();
+        }
+      }
+    });
   }
 }
 
-function getHornMaterial(color) {
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function hornMaterial(color) {
   return new THREE.MeshStandardMaterial({
     color,
-    roughness: 0.82,
-    metalness: 0.05
+    roughness: 0.84,
+    metalness: 0.03
   });
 }
 
-// --------------------
-// geometry
-// --------------------
-function createHornCurve(p, options = {}) {
-  const {
-    lengthScale = 1,
-    curveScale = 1,
-    forwardScale = 1,
-    lift = 0,
-    sideBias = 0,
-    tipLift = 0
-  } = options;
+// -----------------------------
+// Geometry
+// -----------------------------
+function getPresetProfile() {
+  const preset = params.preset || "rhino";
 
-  const L = p.length * lengthScale;
-  const C = p.curve * curveScale;
-  const F = p.forward * forwardScale;
+  if (preset === "rhino") {
+    return {
+      length: params.size,
+      baseRadius: 0.42 * (params.size / 5),
+      tipRadius: 0.02,
+      forward: 1.15,
+      curveFactor: 0.18
+    };
+  }
 
-  const pts = [
-    new THREE.Vector3(sideBias * 0.02, 0 + lift, 0),
-    new THREE.Vector3(C * 0.20 + sideBias * 0.08, L * 0.25 + lift, F * 0.10),
-    new THREE.Vector3(C * 0.55 + sideBias * 0.18, L * 0.58 + lift, F * 0.32),
-    new THREE.Vector3(C * 0.92 + sideBias * 0.25, L * 0.86 + lift + tipLift, F * 0.62),
-    new THREE.Vector3(C + sideBias * 0.28, L + lift + tipLift, F)
-  ];
+  if (preset === "devil") {
+    return {
+      length: params.size,
+      baseRadius: 0.28 * (params.size / 5),
+      tipRadius: 0.03,
+      forward: 0.35,
+      curveFactor: 1.0
+    };
+  }
 
-  return new THREE.CatmullRomCurve3(pts, false, "catmullrom", 0.35);
+  if (preset === "spiral") {
+    return {
+      length: params.size,
+      baseRadius: 0.33 * (params.size / 5),
+      tipRadius: 0.04,
+      forward: 0.35,
+      curveFactor: 0.55
+    };
+  }
+
+  return {
+    length: params.size,
+    baseRadius: 0.16 * (params.size / 5),
+    tipRadius: 0.025,
+    forward: 0.65,
+    curveFactor: 0.9
+  };
 }
 
-function buildTubeFromCurve(curve, options) {
+function createMainCurve() {
+  const profile = getPresetProfile();
+  const L = profile.length;
+  const C = params.curve * profile.curveFactor;
+  const F = profile.forward;
+
+  return new THREE.CatmullRomCurve3(
+    [
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(C * 0.15, L * 0.22, F * 0.08),
+      new THREE.Vector3(C * 0.52, L * 0.55, F * 0.26),
+      new THREE.Vector3(C * 0.88, L * 0.84, F * 0.58),
+      new THREE.Vector3(C, L, F)
+    ],
+    false,
+    "catmullrom",
+    0.4
+  );
+}
+
+function createTubeMesh(curve, options) {
   const {
     baseRadius,
     tipRadius,
     twist,
-    ridges,
-    ridgeStrength,
+    texture,
     color,
     radialSegments = 24,
-    heightSegments = 64
+    heightSegments = 72
   } = options;
 
   const frames = curve.computeFrenetFrames(heightSegments, false);
+
   const positions = [];
   const normals = [];
   const uvs = [];
   const indices = [];
+
+  const ridgeCount = Math.round(4 + texture * 12);
+  const ridgeStrength = texture * 0.12;
 
   for (let i = 0; i <= heightSegments; i++) {
     const t = i / heightSegments;
@@ -281,22 +286,17 @@ function buildTubeFromCurve(curve, options) {
     const binormal = frames.binormals[i];
 
     let radius = lerp(baseRadius, tipRadius, t);
-
-    if (ridges > 0) {
-      const ridgeWave = Math.sin(t * Math.PI * 2 * ridges);
-      radius *= 1 + ridgeWave * ridgeStrength;
-    }
-
-    radius = Math.max(radius, 0.003);
+    radius *= 1 + Math.sin(t * Math.PI * 2 * ridgeCount) * ridgeStrength;
+    radius = Math.max(0.003, radius);
 
     const twistAngle = twist * Math.PI * 2 * t;
 
     for (let j = 0; j <= radialSegments; j++) {
       const v = j / radialSegments;
-      const a = v * Math.PI * 2;
+      const angle = v * Math.PI * 2;
 
-      const x0 = Math.cos(a) * radius;
-      const y0 = Math.sin(a) * radius;
+      const x0 = Math.cos(angle) * radius;
+      const y0 = Math.sin(angle) * radius;
 
       const x = x0 * Math.cos(twistAngle) - y0 * Math.sin(twistAngle);
       const y = x0 * Math.sin(twistAngle) + y0 * Math.cos(twistAngle);
@@ -324,7 +324,9 @@ function buildTubeFromCurve(curve, options) {
       const b = a + radialSegments + 1;
       const c = b + 1;
       const d = a + 1;
-      indices.push(a, b, d, b, c, d);
+
+      indices.push(a, b, d);
+      indices.push(b, c, d);
     }
   }
 
@@ -335,96 +337,95 @@ function buildTubeFromCurve(curve, options) {
   geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
   geometry.computeVertexNormals();
 
-  const mesh = new THREE.Mesh(geometry, getHornMaterial(color));
+  const mesh = new THREE.Mesh(geometry, hornMaterial(color));
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   return mesh;
 }
 
-function createMainHorn(p) {
-  const curve = createHornCurve(p);
-  return buildTubeFromCurve(curve, {
-    baseRadius: p.baseRadius,
-    tipRadius: p.tipRadius,
-    twist: p.twist,
-    ridges: p.ridges,
-    ridgeStrength: p.ridgeStrength,
-    color: p.color,
-    radialSegments: 28,
-    heightSegments: 90
-  });
-}
-
-function getPointAndFrameOnCurve(curve, t) {
+function getCurveFrame(curve, t) {
+  const point = curve.getPointAt(t);
   const tangent = curve.getTangentAt(t).normalize();
-  const frames = curve.computeFrenetFrames(60, false);
-  const idx = Math.min(60, Math.floor(t * 60));
+  const frames = curve.computeFrenetFrames(80, false);
+  const idx = Math.min(80, Math.floor(t * 80));
   return {
-    point: curve.getPointAt(t),
+    point,
     tangent,
     normal: frames.normals[idx],
     binormal: frames.binormals[idx]
   };
 }
 
-function createBranchHorn(p, index, total) {
-  const baseCurve = createHornCurve(p);
-  const t = Math.min(0.95, p.branchStart + index * 0.12);
+function createBranch(curve, index, count) {
+  const profile = getPresetProfile();
+  const t = Math.min(0.9, 0.42 + index * 0.14);
 
-  const { point, tangent, normal, binormal } = getPointAndFrameOnCurve(baseCurve, t);
+  const { point, tangent, normal, binormal } = getCurveFrame(curve, t);
 
-  const angle = p.branchAngle * (0.75 + index * 0.12);
+  const spread = 0.45 + index * 0.16;
+  const branchLength = profile.length * (0.24 + index * 0.08);
+
   const dir = new THREE.Vector3()
     .copy(tangent)
-    .multiplyScalar(0.8)
-    .addScaledVector(normal, Math.cos(index * 1.7) * angle)
-    .addScaledVector(binormal, Math.sin(index * 1.4) * angle * 0.5)
+    .multiplyScalar(0.7)
+    .addScaledVector(normal, spread)
+    .addScaledVector(binormal, (index % 2 === 0 ? 1 : -1) * 0.12)
     .normalize();
 
-  const branchLength = p.length * (0.22 + index * 0.08);
   const p0 = point.clone();
-  const p1 = point.clone().add(dir.clone().multiplyScalar(branchLength * 0.28));
-  const p2 = point.clone().add(dir.clone().multiplyScalar(branchLength * 0.75))
-    .add(new THREE.Vector3(0, branchLength * 0.25, 0));
-  const p3 = point.clone().add(dir.clone().multiplyScalar(branchLength))
+  const p1 = point.clone().add(dir.clone().multiplyScalar(branchLength * 0.3));
+  const p2 = point.clone()
+    .add(dir.clone().multiplyScalar(branchLength * 0.7))
+    .add(new THREE.Vector3(0, branchLength * 0.24, 0));
+  const p3 = point.clone()
+    .add(dir.clone().multiplyScalar(branchLength))
     .add(new THREE.Vector3(0, branchLength * 0.42, 0));
 
-  const curve = new THREE.CatmullRomCurve3([p0, p1, p2, p3], false, "catmullrom", 0.4);
+  const branchCurve = new THREE.CatmullRomCurve3([p0, p1, p2, p3], false, "catmullrom", 0.45);
 
-  return buildTubeFromCurve(curve, {
-    baseRadius: Math.max(0.03, p.baseRadius * (0.34 - index * 0.04)),
-    tipRadius: Math.max(0.01, p.tipRadius * 0.8),
-    twist: p.twist * 0.25,
-    ridges: Math.max(0, Math.floor(p.ridges * 0.4)),
-    ridgeStrength: p.ridgeStrength * 0.4,
-    color: p.color,
-    radialSegments: 18,
-    heightSegments: 46
+  return createTubeMesh(branchCurve, {
+    baseRadius: profile.baseRadius * (0.26 - index * 0.03),
+    tipRadius: profile.tipRadius * 0.9,
+    twist: params.twist * 0.15,
+    texture: params.texture * 0.55,
+    color: params.color,
+    radialSegments: 16,
+    heightSegments: 36
   });
 }
 
-function buildHornGroup(p) {
+function buildHorn() {
   const group = new THREE.Group();
+  const profile = getPresetProfile();
+  const curve = createMainCurve();
 
-  const mainHorn = createMainHorn(p);
+  const mainHorn = createTubeMesh(curve, {
+    baseRadius: profile.baseRadius,
+    tipRadius: profile.tipRadius,
+    twist: params.twist,
+    texture: params.texture,
+    color: params.color,
+    radialSegments: 28,
+    heightSegments: 88
+  });
   group.add(mainHorn);
 
-  for (let i = 0; i < p.branchCount; i++) {
-    const branch = createBranchHorn(p, i, p.branchCount);
-    group.add(branch);
+  if (params.preset === "antler" || params.branches > 0) {
+    for (let i = 0; i < params.branches; i++) {
+      group.add(createBranch(curve, i, params.branches));
+    }
   }
 
-  // 根元リング
   const baseRing = new THREE.Mesh(
-    new THREE.TorusGeometry(Math.max(0.08, p.baseRadius * 0.88), Math.max(0.02, p.baseRadius * 0.12), 12, 32),
+    new THREE.TorusGeometry(Math.max(0.06, profile.baseRadius * 0.85), Math.max(0.015, profile.baseRadius * 0.12), 12, 32),
     new THREE.MeshStandardMaterial({
-      color: new THREE.Color(p.color).multiplyScalar(0.75),
-      roughness: 0.9,
+      color: new THREE.Color(params.color).multiplyScalar(0.72),
+      roughness: 0.92,
       metalness: 0.02
     })
   );
   baseRing.rotation.x = Math.PI / 2;
-  baseRing.position.y = 0.02;
+  baseRing.position.y = 0.03;
   baseRing.castShadow = true;
   baseRing.receiveShadow = true;
   group.add(baseRing);
@@ -432,101 +433,135 @@ function buildHornGroup(p) {
   return group;
 }
 
-// --------------------
-// update
-// --------------------
-function frameObject(group) {
-  const box = new THREE.Box3().setFromObject(group);
+// -----------------------------
+// Camera / Update
+// -----------------------------
+let cameraInitialized = false;
+
+function frameOnce(object) {
+  if (cameraInitialized) return;
+
+  const box = new THREE.Box3().setFromObject(object);
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3());
   const radius = Math.max(size.x, size.y, size.z) * 0.5;
 
-  controls.target.copy(center);
-  camera.position.set(center.x + radius * 1.8, center.y + radius * 0.9, center.z + radius * 2.3);
+  controls.target.set(center.x, Math.max(1.5, center.y * 0.6), center.z);
+  camera.position.set(center.x + radius * 1.7, center.y + radius * 0.9, center.z + radius * 2.2);
   controls.update();
 
-  pedestal.position.set(center.x, 0.1, center.z);
+  cameraInitialized = true;
 }
 
 function updateHorn() {
   scene.remove(hornGroup);
   clearGroup(hornGroup);
 
-  hornGroup = buildHornGroup(params);
+  hornGroup = buildHorn();
   scene.add(hornGroup);
 
-  frameObject(hornGroup);
+  frameOnce(hornGroup);
 }
 
 function applyPreset(name) {
   Object.assign(params, PRESETS[name]);
-  syncInputsFromParams();
+  params.preset = name;
+  syncInputs();
   updateHorn();
 }
 
 function randomColor() {
-  const colors = ["#e6d7c3", "#d8c5aa", "#a06f52", "#f1eee8", "#d2d8ec", "#6f5546"];
+  const colors = ["#e7d8c6", "#cfb69a", "#9d7357", "#efe9df", "#d0d7ea", "#7f5d48"];
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
-function randomizeParams() {
-  params.length = THREE.MathUtils.randFloat(2.5, 8.0);
-  params.baseRadius = THREE.MathUtils.randFloat(0.12, 0.8);
-  params.tipRadius = THREE.MathUtils.randFloat(0.01, 0.12);
-  params.curve = THREE.MathUtils.randFloat(-2.0, 2.5);
-  params.forward = THREE.MathUtils.randFloat(-0.3, 1.5);
-  params.twist = THREE.MathUtils.randFloat(-2.5, 3.0);
-  params.ridges = THREE.MathUtils.randInt(0, 16);
-  params.ridgeStrength = THREE.MathUtils.randFloat(0.0, 0.12);
-  params.branchCount = THREE.MathUtils.randInt(0, 4);
-  params.branchAngle = THREE.MathUtils.randFloat(0.2, 1.1);
-  params.branchStart = THREE.MathUtils.randFloat(0.3, 0.75);
+function randomize() {
+  const presets = ["rhino", "devil", "spiral", "antler"];
+  const preset = presets[Math.floor(Math.random() * presets.length)];
+
+  Object.assign(params, PRESETS[preset]);
+  params.preset = preset;
+  params.size = THREE.MathUtils.randFloat(3.0, 7.8);
+  params.curve = THREE.MathUtils.randFloat(-1.2, 2.4);
+  params.twist = THREE.MathUtils.randFloat(-2.0, 2.8);
+  params.texture = THREE.MathUtils.randFloat(0.0, 0.9);
+  params.branches = preset === "antler" ? THREE.MathUtils.randInt(2, 4) : THREE.MathUtils.randInt(0, 2);
   params.color = randomColor();
 
-  syncInputsFromParams();
+  syncInputs();
   updateHorn();
 }
 
-function resetParams() {
+function resetAll() {
   Object.assign(params, defaultParams);
-  inputs.preset.value = "rhino";
-  syncInputsFromParams();
+  params.preset = "rhino";
+  syncInputs();
   updateHorn();
 }
 
-// --------------------
-// events
-// --------------------
-Object.entries(inputs).forEach(([key, el]) => {
-  if (!el) return;
-
-  if (key === "preset") return;
-
-  el.addEventListener("input", (e) => {
-    params[key] = key === "color" ? e.target.value : Number(e.target.value);
-    updateLabels();
-    updateHorn();
-  });
+// -----------------------------
+// Events
+// -----------------------------
+inputs.preset.addEventListener("change", (e) => {
+  params.preset = e.target.value;
 });
 
-document.getElementById("applyPresetBtn").addEventListener("click", () => {
+inputs.size.addEventListener("input", (e) => {
+  params.size = Number(e.target.value);
+  updateLabels();
+  updateHorn();
+});
+
+inputs.curve.addEventListener("input", (e) => {
+  params.curve = Number(e.target.value);
+  updateLabels();
+  updateHorn();
+});
+
+inputs.twist.addEventListener("input", (e) => {
+  params.twist = Number(e.target.value);
+  updateLabels();
+  updateHorn();
+});
+
+inputs.texture.addEventListener("input", (e) => {
+  params.texture = Number(e.target.value);
+  updateLabels();
+  updateHorn();
+});
+
+inputs.branches.addEventListener("input", (e) => {
+  params.branches = Number(e.target.value);
+  updateLabels();
+  updateHorn();
+});
+
+inputs.color.addEventListener("input", (e) => {
+  params.color = e.target.value;
+  updateHorn();
+});
+
+document.getElementById("presetBtn").addEventListener("click", () => {
   applyPreset(inputs.preset.value);
 });
 
-document.getElementById("randomBtn").addEventListener("click", randomizeParams);
-document.getElementById("resetBtn").addEventListener("click", resetParams);
+document.getElementById("randomBtn").addEventListener("click", randomize);
+document.getElementById("resetBtn").addEventListener("click", resetAll);
 
-// --------------------
-// init
-// --------------------
-inputs.preset.value = "rhino";
-syncInputsFromParams();
+// -----------------------------
+// Init
+// -----------------------------
+params.preset = "rhino";
+syncInputs();
 updateHorn();
 
 window.addEventListener("resize", () => {
-  camera.aspect = viewer.clientWidth / viewer.clientHeight;
+  const width = Math.max(1, viewer.clientWidth);
+  const height = Math.max(1, viewer.clientHeight);
+
+  camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+  renderer.setSize(width, height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
 
@@ -535,4 +570,5 @@ function animate() {
   controls.update();
   renderer.render(scene, camera);
 }
+
 animate();
